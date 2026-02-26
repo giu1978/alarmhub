@@ -10,6 +10,7 @@ const db = require('./config/database');
 
 // Routes
 const authRoutes = require('./routes/auth');
+const debugLoginRoutes = require('./routes/debug-login');
 const userRoutes = require('./routes/users');
 const alarmRoutes = require('./routes/alarms');
 const teamRoutes = require('./routes/teams');
@@ -47,6 +48,7 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/debug', debugLoginRoutes);
 app.use('/api/alarms', authenticate, alarmRoutes);
 app.use('/api/users', authenticate, userRoutes);
 app.use('/api/teams', authenticate, teamRoutes);
