@@ -53,7 +53,7 @@ app.use('/api/teams', authenticate, teamRoutes);
 app.use('/api/public', publicRoutes);
 
 // Serve frontend static files
-const frontendDist = path.join(__dirname, '../../frontend/dist');
+const frontendDist = path.join(__dirname, '../frontend/dist');
 app.use(express.static(frontendDist));
 
 // Handle client-side routing - serve index.html for all non-API routes
