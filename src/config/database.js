@@ -4,12 +4,13 @@ const fs = require('fs');
 const config = require('./index');
 
 // Ensure data directory exists
-const dataDir = path.dirname(config.DB_PATH);
+const dbPath = config.DB_PATH || './data/alarmhub.db';
+const dataDir = path.dirname(dbPath);
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const db = new sqlite3.Database(config.DB_PATH, (err) => {
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
   } else {
