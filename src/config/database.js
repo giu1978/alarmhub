@@ -198,6 +198,23 @@ function initSQLiteTables() {
 }
 
 // Initialize on module load
-initDatabase();
+initDatabase().then(() => {
+  // Ensure admin user always exists (for SQLite in production)
+  if (!usePostgres) {
+    setTimeout(() => {
+      const bcrypt = require('bcrypt');
+      const hashedPassword = bcrypt.hashSync('admin123', 10);
+      db.run(
+        `INSERT OR REPLACE INTO users (id, email, password, first_name, last_name, role, is_active) 
+         VALUES (1, ?, ?, ?, ?, ?, 1)`,
+        ['admin@alarmhub.local', hashedPassword, 'Admin', 'User', 'admin'],
+        (err) => {
+          if (err) console.error('Error creating admin:', err);
+          else console.log('Admin user ensured');
+        }
+      );
+    }, 1000);
+  }
+});
 
 module.exports = db;
