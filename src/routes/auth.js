@@ -145,4 +145,65 @@ router.post('/change-password', authenticate, [
   }
 });
 
+// Setup endpoint - creates tables and admin user
+router.get('/setup', async (req, res) => {
+  try {
+    const bcrypt = require('bcrypt');
+    const hashedPassword = bcrypt.hashSync('admin123', 10);
+    
+    if (usePostgres) {
+      // Create tables for PostgreSQL
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          email TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          first_name TEXT NOT NULL,
+          last_name TEXT NOT NULL,
+          role TEXT DEFAULT 'viewer',
+          phone TEXT,
+          telegram_chat_id TEXT,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      // Insert admin user
+      await db.query(`
+        INSERT INTO users (email, password, first_name, last_name, role)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (email) DO NOTHING
+      `, ['admin@alarmhub.local', hashedPassword, 'Admin', 'User', 'admin']);
+      
+    } else {
+      // SQLite
+      db.run(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          email TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          first_name TEXT NOT NULL,
+          last_name TEXT NOT NULL,
+          role TEXT DEFAULT 'viewer',
+          phone TEXT,
+          telegram_chat_id TEXT,
+          is_active BOOLEAN DEFAULT 1,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      db.run(`
+        INSERT OR IGNORE INTO users (email, password, first_name, last_name, role)
+        VALUES (?, ?, ?, ?, ?)
+      `, ['admin@alarmhub.local', hashedPassword, 'Admin', 'User', 'admin']);
+    }
+    
+    res.json({ message: 'Setup complete! Admin user created: admin@alarmhub.local / admin123' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
